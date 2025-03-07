@@ -1,0 +1,46 @@
+[project]
+name = "ebs-manager"
+version = "0.1.0"
+description = "A Python utility for managing AWS EBS volumes"
+authors = [
+    {name = "EBS Manager Contributors"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+
+dependencies = [
+    "boto3>=1.26.0",
+    "botocore>=1.29.0",
+    "tqdm>=4.64.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py37"
+select = ["E", "F", "I", "W", "N", "B", "UP", "C4", "SIM", "RUF"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+skip-magic-trailing-comma = false
+
+[tool.ruff.isort]
+known-first-party = ["ebs_manager"]
+
+[project.scripts]
+ebs-manager = "ebs_manager:main"
