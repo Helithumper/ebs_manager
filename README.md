@@ -1,6 +1,43 @@
 # EBS Volume Manager
 
-A Python utility for managing AWS EBS volumes. Download EBS volumes from AWS and mount them locally.
+I needed a script that lets me download AWS EC2 EBS volumes and mount them locally. I wrote this using Claude 3.7, so expect the code to look like it was written by Claude 3.7. 
+
+## Rationale
+
+AWS does not natively support downloading and mounting an EC2 EBS volume. This script does that for me so I don't have to do the intermediate steps
+
+## How It Works
+
+The following diagram illustrates the workflow of downloading and mounting an EBS volume:
+
+```mermaid
+flowchart TD
+    A[List EBS Volumes] -->|Select volume to download| B[Download EBS Volume]
+    B -->|Create snapshot| C[Use EBS Direct APIs]
+    C -->|Download blocks| D[Save to local file]
+    D -->|Clean up snapshot| E[Local EBS image file]
+    E -->|Mount with Docker| F[Mount script]
+    
+    F -->|Standard partitions| G[mount_ebs.sh]
+    F -->|LVM volumes| H[mount_lvm_ebs.sh]
+    
+    G -->|1. Calculate offset| I[Mount partition]
+    H -->|1. Setup loop device| J[Activate LVM]
+    
+    I -->|2. Mount filesystem| K[Interactive shell]
+    J -->|2. Mount logical volume| K
+    
+    K -->|Exit shell| L[Unmount volume]
+```
+
+The process involves:
+1. Listing available EBS volumes in your AWS account
+2. Creating a snapshot of the selected volume
+3. Using EBS Direct APIs to download all blocks
+4. Saving the data to a local file
+5. Mounting the file using Docker with the appropriate script:
+   - `mount_ebs.sh` for standard partitioned volumes
+   - `mount_lvm_ebs.sh` for volumes using Logical Volume Management (LVM)
 
 ## Quickstart
 
@@ -19,10 +56,6 @@ python ebs_manager.py --download vol-1234567890abcdef0 -o my_volume
 ./mount_ebs.sh -i my_volume
 
 # When done, type 'exit' or press Ctrl+D to unmount and exit
-
-# In another terminal, access the files
-docker exec -it ebs_mount bash
-# Files are available at /mnt/ebs inside the container
 ```
 
 ## Prerequisites
@@ -90,13 +123,8 @@ For LVM volumes:
 
 ```bash
 ./mount_lvm_ebs.sh -i volume_file
-```
-
-Access the mounted volume:
-
-```bash
-docker exec -it ebs_mount bash
-# Files are at /mnt/ebs
+# You'll be dropped directly into the mounted directory
+# Type 'exit' or press Ctrl+D to unmount and exit
 ```
 
 ## Required IAM Permissions
